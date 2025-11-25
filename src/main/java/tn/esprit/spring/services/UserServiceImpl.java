@@ -23,7 +23,7 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public List<User> retrieveAllUsers() { 
 
-		return null;
+		return userRepository.findAll();
 	}
 
 
@@ -93,3 +93,4 @@ public class UserServiceImpl implements IUserService {
 	
 	
 }
+
