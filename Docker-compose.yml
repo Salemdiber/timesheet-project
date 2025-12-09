@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  mysqldb:
+    image: mysql:8.0
+    container_name: timesheet-project_mysqldb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: salem   # Mets le mot de passe que tu veux
+      MYSQL_DATABASE: timesheet-devops-db
+    ports:
+      - "3306:3306"
+    volumes:
+      - timesheetvol:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  timesheet-app:
+    image: openjdk:17
+    container_name: timesheet-project-app
+    build: .
+    depends_on:
+      mysqldb:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/timesheet-devops-db?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: salem
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+volumes:
+  timesheetvol:
