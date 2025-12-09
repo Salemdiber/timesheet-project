@@ -1,6 +1,5 @@
 package tn.esprit.spring.control;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,51 +8,41 @@ import org.springframework.web.bind.annotation.*;
 import tn.esprit.spring.entities.User;
 import tn.esprit.spring.services.IUserService;
 
-// userRestControl
-@RestController // = @Controller + @ResponseBody 
-@RequestMapping("/user")
+@RestController
+@RequestMapping("/api/users")
 public class UserRestControl {
 
-	@Autowired 
-	IUserService userService; 
+    @Autowired
+    private IUserService userService;
 
-	
-	// URL : http://localhost:????/????/????/retrieve-all-users
-	@GetMapping("/retrieve-all-users")
-	public List<User> retrieveAllUsers() {
-		return userService.retrieveAllUsers();
-		//return list;
-	}
- 
-	// http://localhost:????/timesheet-devops/retrieve-user/{user-id}
-	@GetMapping("/retrieve-user/{user-id}")
-	public User retrieveUser(@PathVariable("user-id") String userId) {
-		return userService.retrieveUser(userId);
-	}
-	
-	 
+    // GET all users
+    @GetMapping
+    public List<User> retrieveAllUsers() {
+        return userService.retrieveAllUsers();
+    }
 
-	// Ajouter User : http://localhost:????/timesheet-devops/add-user 
-	@PostMapping("/add-user")
-	public User addUser(@RequestBody User u) {
-		User user = userService.addUser(u); 
-		return user;
-	}
+    // GET one user
+    @GetMapping("/{id}")
+    public User retrieveUser(@PathVariable Long id) {
+        return userService.retrieveUser(String.valueOf(id));
+    }
 
-	
-	// Supprimer User : 
-	// http://localhost:????/timesheet-devops/remove-user/{user-id}
-	@DeleteMapping("/remove-user/{user-id}") 
-	public void removeUser(@PathVariable("user-id") String userId) { 
-		userService.deleteUser(userId);
-	} 
+    // POST create user
+    @PostMapping
+    public User addUser(@RequestBody User u) {
+        return userService.addUser(u);
+    }
 
-	// Modifier User 
-	// http://localhost:????/timesheet-devops/modify-user 
-	@PutMapping("/modify-user") 
-	public User updateUser(@RequestBody User user) {
-		return userService.updateUser(user);
-	}
-	 
-} 
- 
+    // PUT update user
+    @PutMapping("/{id}")
+    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+        user.setId(id);
+        return userService.updateUser(user);
+    }
+
+    // DELETE user
+    @DeleteMapping("/{id}")
+    public void removeUser(@PathVariable Long id) {
+        userService.deleteUser(String.valueOf(id));
+    }
+}
