@@ -1,6 +1,7 @@
 package tn.esprit.spring.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,84 +14,101 @@ import tn.esprit.spring.repository.UserRepository;
 @Service
 public class UserServiceImpl implements IUserService {
 
-	@Autowired
-	UserRepository userRepository;
+    private static final Logger log = LogManager.getLogger(UserServiceImpl.class);
 
+    @Autowired
+    private UserRepository userRepository;
 
+    @Override
+    public List<User> retrieveAllUsers() {
+        log.info("Retrieving all users");
+        return userRepository.findAll();
+    }
 
-	private static final Logger l = LogManager.getLogger(UserServiceImpl.class);
+    @Override
+    public User addUser(User u) {
+        log.info("Starting addUser()");
+        try {
+            User saved = userRepository.save(u);
+            log.info("User added successfully: {}", saved.getId());
+            return saved;
+        } catch (Exception e) {
+            log.error("Error in addUser(): {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
-	@Override
-	public List<User> retrieveAllUsers() { 
+    @Override
+    public User updateUser(User u) {
+        log.info("Starting updateUser() for id: {}", u.getId());
+        try {
+            if (!userRepository.existsById(u.getId())) {
+                log.warn("User with id {} not found", u.getId());
+                return null;
+            }
 
-		return userRepository.findAll();
-	}
+            User updated = userRepository.save(u);
+            log.info("User updated successfully: {}", updated.getId());
+            return updated;
+        } catch (Exception e) {
+            log.error("Error in updateUser(): {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
+    @Override
+    public void deleteUser(String id) {
+        long userId;
 
-	@Override
-	public User addUser(User u) {
+        try {
+            userId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            log.error("Invalid user id format '{}'", id);
+            return;
+        }
 
-		User utilisateur = null; 
+        log.info("Starting deleteUser() for id: {}", userId);
 
-		try {
-			// TODO Log à ajouter en début de la méthode 
-			utilisateur = userRepository.save(u); 
-			// TODO Log à ajouter à la fin de la méthode 
+        try {
+            if (!userRepository.existsById(userId)) {
+                log.warn("User with id {} not found", userId);
+                return;
+            }
 
-		} catch (Exception e) {
-			// TODO log ici : l....("error in addUser() : " + e);
-		}
+            userRepository.deleteById(userId);
+            log.info("User deleted successfully: {}", userId);
+        } catch (Exception e) {
+            log.error("Error in deleteUser(): {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 
-		return utilisateur; 
-	}
+    @Override
+    public User retrieveUser(String id) {
+        long userId;
 
-	@Override 
-	public User updateUser(User u) {
+        try {
+            userId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            log.error("Invalid user id format '{}'", id);
+            return null;
+        }
 
-		User userUpdated = null; 
-		User u_saved = null; 
+        log.info("Retrieving user with id: {}", userId);
 
-		
-		try {
-			// TODO Log à ajouter en début de la méthode 
-			userUpdated = userRepository.save(u); 
-			// TODO Log à ajouter à la fin de la méthode 
+        try {
+            Optional<User> optional = userRepository.findById(userId);
 
-		} catch (Exception e) {
-			// TODO log ici : l....("error in updateUser() : " + e);
-		}
-
-		return userUpdated; 
-	}
-
-	@Override
-	public void deleteUser(String id) {
-
-		try {
-			// TODO Log à ajouter en début de la méthode 
-			userRepository.deleteById(Long.parseLong(id)); 
-			// TODO Log à ajouter à la fin de la méthode 
-
-		} catch (Exception e) {
-			// TODO log ici : l....("error in deleteUser() : " + e);
-		}
-
-	}
-
-	@Override
-	public User retrieveUser(String id) {
-		User u = null;
-		try {
-			u =  userRepository.findById(Long.parseLong(id)).get();
-
-		} catch (Exception e) {
-		}
-
-		return u;
-	}
-
-	
-	
-	
+            if (optional.isPresent()) {
+                log.info("User found: {}", userId);
+                return optional.get();
+            } else {
+                log.warn("User with id {} not found", userId);
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error in retrieveUser(): {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 }
-
